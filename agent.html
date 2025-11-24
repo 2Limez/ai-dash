@@ -17,6 +17,12 @@
         <h1 class="app-title" id="headerTitle">Occupation</h1>
       </div>
       <div class="header-actions">
+        <select id="modelSelect" class="model-selector">
+          <option value="gpt-4o">GPT-4o</option>
+          <option value="gpt-4o-mini">GPT-4o Mini</option>
+          <option value="gpt-4-turbo">GPT-4 Turbo</option>
+          <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+        </select>
         <select id="themeSelect" class="theme-selector">
           <option value="dark">Dark Mode</option>
           <option value="aol">AOL Instant Messenger</option>
@@ -40,7 +46,7 @@
               <div class="message-content">
                 <div class="message-text">
                   <strong>AI Assistant:</strong> Hello! I'm your specialized <span id="agentTitle">AI agent</span>. 
-                  <span id="connectionStatus">Ready to chat! I'm connected to OpenAI GPT-4.</span>
+                  <span id="connectionStatus">Ready to chat! I'm connected to OpenAI GPT-4O.</span>
                 </div>
               </div>
             </div>
@@ -93,8 +99,9 @@
         const sendBtn = document.getElementById('sendBtn');
         const testAgentBtn = document.getElementById('testAgentBtn');
         const clearChatBtn = document.getElementById('clearChatBtn');
-        const connectionStatus = document.getElementById('connectionStatus');
+        const modelSelect = document.getElementById('modelSelect');
         const themeSelect = document.getElementById('themeSelect');
+        const connectionStatus = document.getElementById('connectionStatus');
         const addNoteBtn = document.getElementById('addNoteBtn');
         const notesContainer = document.getElementById('notesContainer');
 
@@ -116,6 +123,27 @@
           setTheme(theme);
         }
 
+        // Model management
+        function loadModel() {
+          const savedModel = localStorage.getItem('selected-model') || 'gpt-4o';
+          setModel(savedModel);
+          if (modelSelect) {
+            modelSelect.value = savedModel;
+          }
+        }
+
+        function setModel(model) {
+          localStorage.setItem('selected-model', model);
+          // Update the connection status to show current model
+          if (connectionStatus) {
+            connectionStatus.textContent = `Ready to chat! I'm connected to OpenAI ${model.toUpperCase()}.`;
+          }
+        }
+
+        function switchModel(model) {
+          setModel(model);
+        }
+
         // Initialize page
         function init() {
           if (!occupation.id) {
@@ -123,8 +151,9 @@
             return;
           }
 
-          // Load theme first
+          // Load theme and model first
           loadTheme();
+          loadModel();
 
           // Update page title
           document.title = `AI Agent - ${occupation.title}`;
@@ -137,7 +166,7 @@
           
           // Always show test button since we're using OpenAI API
           testAgentBtn.hidden = false;
-          connectionStatus.textContent = "Ready to chat! I'm connected to OpenAI GPT-4.";
+          connectionStatus.textContent = "Ready to chat! I'm connected to OpenAI GPT-4O.";
 
           // Load chat history and notes
           loadChatHistory();
@@ -159,6 +188,9 @@
           // Theme switcher
           if (themeSelect) {
             themeSelect.onchange = (e) => switchTheme(e.target.value);
+          }
+          if (modelSelect) {
+            modelSelect.onchange = (e) => switchModel(e.target.value);
           }
         }
 
@@ -200,7 +232,7 @@
                 <div class="message-content">
                   <div class="message-text">
                     <strong>AI Assistant:</strong> Hello! I'm your specialized <span id="agentTitle">AI agent</span>. 
-                    <span id="connectionStatus">Ready to chat! I'm connected to OpenAI GPT-4.</span>
+                    <span id="connectionStatus">Ready to chat! I'm connected to OpenAI GPT-4O.</span>
                   </div>
                 </div>
               </div>
@@ -354,8 +386,9 @@ IMPORTANT: You have access to our conversation history and the user's notes abov
           // Add current user message
           messages.push({ role: "user", content: userMessage });
 
+          const selectedModel = localStorage.getItem('selected-model') || 'gpt-4o';
           const payload = {
-            model: "gpt-4o",
+            model: selectedModel,
             messages: messages
           };
 
@@ -402,8 +435,9 @@ IMPORTANT: You have access to our conversation history and the user's notes abov
           testAgentBtn.disabled = true;
           
           // Test the OpenAI API with a simple request
+          const selectedModel = localStorage.getItem('selected-model') || 'gpt-4o';
           const testPayload = {
-            model: "gpt-4o",
+            model: selectedModel,
             messages: [
               { role: "system", content: "You are a helpful assistant." },
               { role: "user", content: "Hello, this is a connection test." }
